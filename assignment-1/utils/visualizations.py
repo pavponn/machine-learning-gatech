@@ -158,6 +158,8 @@ def validation_bar_chart(clf,
 
     plt.xticks(param_positions + bar_width / 2, param_range)
     plt.legend(frameon=True, loc='lower left')
+    path_to_create = Path(output_path).parent.absolute()
+    os.makedirs(path_to_create, exist_ok=True)
     plt.savefig(output_path)
 
     # Show the plot
@@ -184,11 +186,6 @@ def validation_curve_complex(clf,
     setup_plots()
     fig, ax = plt.subplots()
 
-    # Set Yellowbrick-like style
-    # ax.spines['top'].set_color('none')
-    # ax.spines['right'].set_color('none')
-    # ax.spines['left'].set_color('#d9d9d9')
-    # ax.spines['bottom'].set_color('#d9d9d9')
     ax.xaxis.set_ticks_position('bottom')
     ax.yaxis.set_ticks_position('left')
     ax.tick_params(axis='both', colors='black')
@@ -250,9 +247,11 @@ def loss_curve(clf: MLPClassifier,
     plt.show()
 
 
-def confusion_matrix(clf, X, y, classes=None):
-    if classes is None:
-        classes = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    cm = ConfusionMatrix(clf, classes=classes, is_fitted=True)
+def confusion_matrix(clf, X, y, output_path,  title, encoder=None):
+    if encoder is None:
+        encoder = {3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9}
+    cm = ConfusionMatrix(clf, encoder=encoder, is_fitted=True, title=title)
     cm.score(X, y)
-    plt.show()
+    path_to_create = Path(output_path).parent.absolute()
+    os.makedirs(path_to_create, exist_ok=True)
+    cm.show(outpath=output_path)

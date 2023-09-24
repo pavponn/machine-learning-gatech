@@ -2,6 +2,7 @@ from functools import partial
 
 import numpy as np
 from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import f1_score
 
 
 def max_recall_at_precision_k(k, y_true, probas_pred) -> float:
@@ -26,6 +27,16 @@ def recall_at_precision_stats(k, clf, X_tr, X_t, y_tr, y_t):
 
     print(f"Recall @ Precision 0.9 (train): {train_r_at_pr_k:.4f}")
     print(f"Recall @ Precision 0.9 (test) : {test_r_at_pr_k:.4f}")
+
+
+def f1_score_stats(clf, X_tr, X_t, y_tr, y_t, averaging):
+    y_train = clf.predict(X_tr)
+    y_test = clf.predict(X_t)
+    train_f1_score = f1_score(y_tr.values, y_train, average=averaging)
+    test_f1_score = f1_score(y_t.values, y_test, average=averaging)
+
+    print(f"F1-Score, {averaging} (train): {train_f1_score:.4f}")
+    print(f"F1-Score, {averaging} (test) : {test_f1_score:.4f}")
 
 
 def recall_at_precision_k_scoring(k, clf, X_m, y_m):
