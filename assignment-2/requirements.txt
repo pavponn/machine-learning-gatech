@@ -7,3 +7,4 @@ scipy>=1.6.0
 jupyter==1.0.0
 yellowbrick>=1.5
 mlrose-hiive=2.2.4
+tqdm>=4.6.0
