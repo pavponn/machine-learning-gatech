@@ -50,7 +50,7 @@ class ChartProducer(object):
             best_curves_stacked_df = pd.concat(best_curves_dfs, axis=0)
             self._plot_curve(df=best_curves_stacked_df,
                              curve=curve,
-                             title_details=f'Best Parameters, (size={size})',
+                             title_details=f'Best Parameters (size={size})',
                              file_name=f'charts/{self.problem_name}-{size}/{curve.lower()}-best.png',
                              breakdown_column='Algorithm'
                              )
@@ -65,6 +65,12 @@ class ChartProducer(object):
                                 file_name=f'charts/{self.problem_name}-{algo}/{curve.lower()}-best.png',
                                 breakdown_column='Problem Size'
                                 )
+
+    def plog_best_series_for_all_algos_one_plot(self, curve='Fitness'):
+        self._plot_barcharts(curve=curve,
+                             title_details=f'Best Parameters',
+                             file_name=f'charts/{self.problem_name}/{curve.lower()}-best.png',
+                             breakdown_column='Problem Size')
 
     def fill_in(self, df_seed, algo):
         m = self.iterations + 1
@@ -233,7 +239,6 @@ class ChartProducer(object):
                                  )
 
     def _plot_barchart(self, df, curve, title_details, file_name, breakdown_column):
-        alpha = 0.2
         xs = df[breakdown_column].unique()
         ys = []
         ys_std = []
@@ -272,6 +277,61 @@ class ChartProducer(object):
 
         y_label_text = 'Fitness, %' if curve == 'Fitness' else f'{curve}'
         plt.xticks(x_axis, xs)
+        plt.xlabel(f'{breakdown_column}')
+        plt.ylabel(y_label_text)
+        plt.title(title)
+        plt.legend()
+        plt.grid(True)
+        os.makedirs(Path(file_name).parent.absolute(), exist_ok=True)
+        plt.savefig(file_name)
+        plt.clf()
+
+    def _plot_barcharts(self, curve, title_details, file_name, breakdown_column):
+
+        algo_means = {}
+        algo_stds = {}
+        x_axis = []
+        multiplier = 0
+        width = 0.2
+        xs = []
+        for algo in self.algo_parameters.keys():
+            dfs = self.get_best_results_by_fitness_size(algo)
+            df = pd.concat(dfs, axis=0)
+            xs = df[breakdown_column].unique()
+            ys = []
+            ys_std = []
+
+            for x in xs:
+                y = df[(df[breakdown_column] == x) & (df['Iteration'] == self.iterations)]
+                if curve == 'Fitness':
+                    max_fitness = self.max_fitness[x]
+                    std = y[f'Std {curve}'].iloc[0] / (max_fitness + 0.0)
+                    if self.maximise:
+                        val = (y[f'Mean {curve}'].iloc[0] + 0.0) / (max_fitness + 0.0)
+
+                    else:
+                        val = 1 - (y[f'Mean {curve}'].iloc[0] + 0.0) / (max_fitness + 0.0)
+                else:
+                    val = y[f'Mean {curve}'].iloc[0]
+                    std = y[f'Std {curve}'].iloc[0]
+
+                ys.append(val)
+                ys_std.append(std)
+            algo_means[algo] = ys
+            algo_stds[algo] = ys_std
+            x_axis = np.arange(len(xs))
+
+            plt.bar(x_axis + width * multiplier, ys, width, label=f'{algo.upper()}')
+
+            plt.errorbar(x_axis + width * multiplier, ys, yerr=ys_std, fmt="o", color="r")
+            multiplier += 1
+
+        title = f'{curve} vs. {breakdown_column}'
+        if title_details is not None:
+            title = title + f', {title_details}'
+
+        y_label_text = 'Fitness, %' if curve == 'Fitness' else f'{curve}'
+        plt.xticks(x_axis + width * 1.5, xs)
         plt.xlabel(f'{breakdown_column}')
         plt.ylabel(y_label_text)
         plt.title(title)
