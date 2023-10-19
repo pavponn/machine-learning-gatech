@@ -55,7 +55,7 @@ def run_mimic_all():
         print(f"Generating MIMIC, {problem_sizes[i]}")
         run_mimic_algorithm(problem=problems[i],
                             keep_percent_list=keep_percent_list, problem_name=f"{problem_name}-{problem_sizes[i]}",
-                            max_attempts=350, iterations=ITERATIONS, population_size=250)
+                            max_attempts=50, iterations=ITERATIONS, population_size=250)
 
 
 if __name__ == "__main__":
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # run_ga_all()
     # run_sa_all()
     # run_rhc_all()
-    # run_mimic_all()
+    run_mimic_all()
     end_time = time.time()
     print(f"FINISH")
     print(f"Total time: {end_time - start_time}, seconds")

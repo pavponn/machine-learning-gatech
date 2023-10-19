@@ -40,8 +40,8 @@ def run_ga_all():
     for i in range(len(problems)):
         print(f"Generating GA, {problem_sizes[i]}")
         run_ga_algorithm(problem=problems[i],
-                         mutation_rates=mutation_rates, problem_name=f"{problem_name}-{problem_sizes[i]}",
-                         max_attempts=MAX_ATTEMPTS, iterations=ITERATIONS, population_size=POPULATION_SIZE)
+                         mutation_rates=mutation_rates, problem_name=f"{problem_name}-{problem_sizes[i]}-population-check",
+                         max_attempts=MAX_ATTEMPTS, iterations=ITERATIONS, population_size=5)
 
 
 def run_sa_all():
@@ -74,9 +74,9 @@ def run_mimic_all():
 if __name__ == "__main__":
     print(f"START")
     start_time = time.time()
-    # run_ga_all()
-    run_sa_all()
-    run_rhc_all()
+    run_ga_all()
+    # run_sa_all()
+    # run_rhc_all()
     # run_mimic_all()
     end_time = time.time()
     print(f"FINISH")
