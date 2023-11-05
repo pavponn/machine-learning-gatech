@@ -5,6 +5,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from kneed import KneeLocator
 from matplotlib import pyplot as plt
 from pathlib import Path
 import seaborn as sns
@@ -17,13 +18,9 @@ from yellowbrick.cluster import KElbowVisualizer
 from yellowbrick import set_aesthetic
 from GaussianMixtureCluster import GaussianMixtureCluster
 from scipy.stats import kurtosis
-from sklearn.random_projection import GaussianRandomProjection, SparseRandomProjection
+from sklearn.random_projection import GaussianRandomProjection
 from sklearn.manifold import Isomap
-import metrics as metrics
 from constants import SEEDS
-
-
-# from kneed import KneeLocator
 
 
 def setup_plots():
@@ -204,73 +201,39 @@ def pca_visualize_eigenvalues(X_data: pd.DataFrame, output_path: str):
 
 def ica_visualize_absolute_mean_kurtosis(X_data: pd.DataFrame, output_path: str, seed: int, max_iter: int = 500):
     n_features = X_data.shape[1]
-    kurtosis_ica = []
-    negentropy_ica = []
     k_range = range(1, n_features + 1)
 
-    for k in k_range:
-        ica = FastICA(n_components=k, random_state=seed, max_iter=max_iter)
-        X_data_reduced = ica.fit_transform(X_data)
-        print(len(kurtosis(X_data_reduced)))
-        kurtosis_ica.append(np.mean(np.abs(kurtosis(X_data_reduced))))
-        negentropy_ica.append(np.sum([metrics.negentropy_estimation(component) for component in ica.components_]))
+    ica = FastICA(n_components=n_features, random_state=seed, max_iter=max_iter)
+    X_data_reduced = ica.fit_transform(X_data)
+    kurtosis_ica = np.absolute(kurtosis(X_data_reduced))
+    kurtosis_ica = np.sort(kurtosis_ica)[::-1]
+    cum_kurtosis_means = np.cumsum(kurtosis_ica) / np.arange(1, len(kurtosis_ica) + 1)
 
-    fig, ax1 = plt.subplots()
+    plt.plot(k_range, cum_kurtosis_means, color='#1f77b4', label='Absolute Average Kurtosis')
 
-    # Plot the first curve
-    ax1.plot(k_range, kurtosis_ica, color='#1f77b4', label='Absolute Average Kurtosis')
-    ax1.scatter(k_range, kurtosis_ica, color='#1f77b4', marker='D', s=50, zorder=5)
-    ax1.set_xlabel('n_components')
-    ax1.set_ylabel('absolute average kurtosis', color='#1f77b4')
-    ax1.set_xticks(k_range)
-    ax1.tick_params(axis='y', labelcolor='#1f77b4')
-    lines, labels = ax1.get_legend_handles_labels()
+    elbow_locator = KneeLocator(k_range, cum_kurtosis_means, curve='convex', direction='decreasing')
+    plt.axvline(x=elbow_locator.knee, color='black', label=f'Elbow point', linestyle='--')
 
-    ax2 = ax1.twinx()
-
-    # Plot the second curve
-    ax2.plot(k_range, negentropy_ica, color='#2ca02c', label='Negentropy')
-    ax2.set_ylabel('negentropy', color='#2ca02c')
-    ax2.tick_params(axis='y', labelcolor='#2ca02c')
-    ax2.scatter(k_range, negentropy_ica, color='#2ca02c', marker='D', s=50, zorder=5)
-
-    lines_2, labels_2 = ax2.get_legend_handles_labels()
-    ax2.legend(lines + lines_2, labels + labels_2, loc=0, frameon=True)
-    plt.title("Absolute Average Kurtosis / Average Negentropy vs Number of Independent Components")
-    plt.grid(True)
-    plt.savefig(output_path)
-    plt.show()
-
-
-def ica_visualize_absolute_median_kurtosis(X_data: pd.DataFrame, output_path: str, seed: int, max_iter: int = 500):
-    n_features = X_data.shape[1]
-    kurtosis_ica = []
-    k_range = range(1, n_features + 1)
-
-    for k in k_range:
-        ica = FastICA(n_components=k, random_state=seed, max_iter=max_iter)
-        X_data_reduced = ica.fit_transform(X_data)
-        print(len(kurtosis(X_data_reduced)))
-        kurtosis_ica.append(np.median(np.abs(kurtosis(X_data_reduced))))
-
-    # Plot the second curve
-    plt.plot(k_range, kurtosis_ica, color='#1f77b4')
-    plt.scatter(k_range, kurtosis_ica, color='#1f77b4', marker='D', s=50, zorder=5)
+    plt.scatter(k_range, cum_kurtosis_means, color='#1f77b4', marker='D', s=50, zorder=5)
+    plt.xticks(k_range)
     plt.xlabel('n_components')
-    plt.ylabel('absolute median kurtosis')
-
-    plt.title("Absolute Median Kurtosis vs Number of Independent Components")
+    plt.ylabel('absolute average kurtosis')
+    plt.title("Absolute Average Kurtosis vs Number of Independent Components")
     plt.grid(True)
+    plt.legend(frameon=True)
     plt.savefig(output_path)
+
     plt.show()
 
 
-def ica_visualize_absolute_kurtosis_distribution(X_data: pd.DataFrame, k: int, output_path: str, seed: int,
+def ica_visualize_absolute_kurtosis_distribution(X_data: pd.DataFrame, output_path: str, seed: int,
                                                  max_iter: int = 500):
+    k = X_data.shape[1]
     ica = FastICA(n_components=k, random_state=seed, max_iter=max_iter)
     X_data_reduced = ica.fit_transform(X_data)
     print(len(kurtosis(X_data_reduced)))
     kurtosis_values = np.abs(kurtosis(X_data_reduced))
+    kurtosis_values = np.sort(kurtosis_values)[::-1]
     x_axis = range(1, k + 1)
     plt.bar(x_axis, kurtosis_values, color='#1f77b4')
     for i, value in enumerate(kurtosis_values):
@@ -326,16 +289,15 @@ def isomap_reconstruction_error(X_data: pd.DataFrame, output_path: str):
         isomap.fit(X_data)
         errors.append(isomap.reconstruction_error())
 
-    # kn = KneeLocator(k_range, errors, curve='convex', direction='decreasing')
-    # plt.axvline(x=kn.knee, linestyle='--', color='black',
-    #             label=f'elbow k = {kn.knee}, error={kn.knee_y}')
-    plt.plot(k_range, errors, color='#1f77b4')
+    elbow_locator = KneeLocator(k_range, errors, curve='convex', direction='decreasing')
+    plt.axvline(x=elbow_locator.knee, color='black', label=f'Elbow point', linestyle='--')
+    plt.plot(k_range, errors, color='#1f77b4', label='Isomap Reconstruction Error')
     plt.scatter(k_range, errors, color='#1f77b4', marker='D', s=50, zorder=5)
     plt.title('Reconstruction Error vs Number of Components (Isomap)')
     plt.xlabel('n_components')
     plt.ylabel('error')
 
     plt.grid(True)
-    # plt.legend(frameon=True)
+    plt.legend(frameon=True)
     plt.savefig(output_path)
     plt.show()
