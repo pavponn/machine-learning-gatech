@@ -5,8 +5,8 @@ from sklearn.mixture import GaussianMixture
 class GaussianMixtureCluster(GaussianMixture, ClusterMixin):
     """Subclass of GaussianMixture to make it a ClusterMixin."""
 
-    def fit(self, X):
-        super().fit(X)
+    def fit(self, X, y=None, **kwargs):
+        super().fit(X, y)
         self.labels_ = self.predict(X)
         return self
 

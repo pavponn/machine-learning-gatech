@@ -28,10 +28,10 @@ def setup_plots():
     plt.rcParams['figure.figsize'] = (8, 6)
 
 
-def pair_plot(df: pd.DataFrame, output_path: str, hue=None):
+def pair_plot(df: pd.DataFrame, output_path: str, hue=None, vars=None):
     path_to_create = Path(output_path).parent.absolute()
     os.makedirs(path_to_create, exist_ok=True)
-    this_plot = sns.pairplot(df, hue=hue)
+    this_plot = sns.pairplot(df, hue=hue, vars=vars)
     this_plot.savefig(output_path)
     return this_plot
 
@@ -136,7 +136,7 @@ def gmm_visualize_aic_bic(X_data: pd.DataFrame,
 
 
 def visualize_clusters_with_tsne(model, X_data: pd.DataFrame, labels: Optional[pd.DataFrame], output_path: str,
-                                 seed: int, labels_name='Ground Truth Labels'):
+                                 seed: int, labels_name='Ground Truth Labels', s=5):
     clusters = model.fit_predict(X_data)
 
     tsne = TSNE(n_components=2, random_state=seed)
@@ -145,7 +145,7 @@ def visualize_clusters_with_tsne(model, X_data: pd.DataFrame, labels: Optional[p
     plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=clusters, cmap='plasma', label='Predicted Clusters', alpha=1.)
     if labels is not None:
         plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=labels, cmap='viridis', label=labels_name, alpha=1.0,
-                    marker='D', s=5, linewidths=1)
+                    marker='D', s=s, linewidths=1)
 
     plt.legend()
     plt.title('t-SNE Visualization of Clusters')

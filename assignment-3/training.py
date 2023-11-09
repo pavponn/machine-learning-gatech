@@ -26,7 +26,7 @@ def perform_hyperparameter_tuning(clf,
 
 def learning_time_stats(clf, X_tr, y_tr):
     start_time = time.time()
-    clf.fit(X_tr, y_tr)
+    clf.fit(X_tr)
     end_time = time.time()
     train_time = end_time - start_time
     print(f"Training time, total: {train_time:.4f} seconds")
