@@ -22,6 +22,7 @@ def create_convergence_and_state_plots(default_size,
                                        log_scale_y=False,
                                        marker='.',
                                        marker_size=10,
+                                       actual_sizes=None,
                                        plot_changes: bool = False):
     os.makedirs(folder_path, exist_ok=True)
     df_def_size = result_df[result_df['States'] == default_size]
@@ -92,7 +93,10 @@ def create_convergence_and_state_plots(default_size,
     data = result_df.groupby(['States', 'Gamma'])['Total Iter'].max().reset_index()
     for i, gamma in enumerate(set(result_df['Gamma'])):
         gamma_data = data[data['Gamma'] == gamma]
-        states = gamma_data['States']
+        if actual_sizes is not None:
+            states = gamma_data['States'].apply(lambda s: actual_sizes[s])
+        else:
+            states = gamma_data['States']
         iters = gamma_data['Total Iter']
         plt.plot(states, iters, marker=marker, markersize=marker_size, linestyle='-', label=f"Gamma = {gamma}")
     plt.title('Iterations vs. States')
@@ -114,7 +118,10 @@ def create_convergence_and_state_plots(default_size,
     data = result_df.groupby(['States', 'Gamma'])['Total Time'].max().reset_index()
     for i, gamma in enumerate(set(result_df['Gamma'])):
         gamma_data = data[data['Gamma'] == gamma]
-        states = gamma_data['States']
+        if actual_sizes is not None:
+            states = gamma_data['States'].apply(lambda s: actual_sizes[s])
+        else:
+            states = gamma_data['States']
         times = gamma_data['Total Time']
         plt.plot(states, times, marker=marker, markersize=marker_size, linestyle='-', label=f"Gamma = {gamma}")
 

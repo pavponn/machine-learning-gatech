@@ -73,7 +73,7 @@ class PolicyIterationCustom(MDP):
     """
 
     def __init__(self, transitions, reward, gamma, policy0=None,
-                 max_iter=1000, eval_type=0, skip_check=False,
+                 max_iter=1000, eval_type=1, skip_check=False,
                  run_stat_frequency=None):
         # Initialise a policy iteration MDP.
         #

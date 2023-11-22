@@ -18,6 +18,7 @@ def write_stats_for_problem_sizes(algo_class, main_size, state_sizes, problem_fu
     dfs = []
     policies_to_return = None
     for state_size in state_sizes:
+        print(f"Processing size {state_size}")
         p, r = problem_function(state_size)
         cur_stat_df, policies = write_stats(p, r, algo_class, not_use_span_vi=not_use_span_vi,
                                             collect_changes=collect_changes, max_iter=max_iter, gammas=gammas,
