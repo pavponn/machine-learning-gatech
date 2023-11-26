@@ -23,7 +23,8 @@ def create_convergence_and_state_plots(default_size,
                                        marker='.',
                                        marker_size=10,
                                        actual_sizes=None,
-                                       plot_changes: bool = False):
+                                       plot_changes: bool = False,
+                                       plot_states: bool = True):
     os.makedirs(folder_path, exist_ok=True)
     df_def_size = result_df[result_df['States'] == default_size]
 
@@ -89,6 +90,9 @@ def create_convergence_and_state_plots(default_size,
     ####################
     ####################
     ####################
+
+    if not plot_states:
+        return
 
     data = result_df.groupby(['States', 'Gamma'])['Total Iter'].max().reset_index()
     for i, gamma in enumerate(set(result_df['Gamma'])):
